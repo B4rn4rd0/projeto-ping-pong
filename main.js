@@ -16,9 +16,6 @@ score2 = 0;
 playerscore = 0;
 pcscore = 0;
 
-audio1 = '';
-
-
 //Coordenadas x, y, raio, velocidade em x e velocidade em y
 ball = {
     x:350/2,
@@ -28,9 +25,8 @@ ball = {
     dy:3
 }
 
-rightWristY = 0;
-rightWristX = 0;
-scoreRightWrist = 0;
+noseY = 0;
+noseX = 0;
 
 gameStatus = "";
 
@@ -44,7 +40,7 @@ function setup(){
   canvas.parent('canvas');
 
   video = createCapture(VIDEO);
-  video.size("700, 550");
+  video.size(700, 550);
   video.hide();
 
   poseNet = ml5.poseNet(video, modelLoaded);
@@ -55,18 +51,16 @@ function modelLoaded(){
 console.log("PoseNet Is Imitializated");
 }
 
-function gotPoses(){
+function gotPoses(results){
   if(results.length > 0)
   {
-    rightWristY = results[0].pose.rightWrist.y;
-    rightWristX =  results[0].pose.rightWrist.x;
-    scoreRightWrist = results[0].pose.keypoints[10].score;
-    console.log(scoreRightWrist);
+    noseY = results[0].pose.nose.y;
+    noseX =  results[0].pose.nose.x;
   }
 }
 
 function startGame(){
-  game_status = "start";
+  gameStatus = "start";
   document.getElementById("status").innerHTML = "Game IS Loaded";
 }
 
@@ -76,7 +70,7 @@ function draw(){
   {
 
   background(0);
-  Image(video, 0, 0, 700, 550);
+  image(video, 0, 0, 700, 550);
 
   fill("black");
   stroke("black");
@@ -90,18 +84,15 @@ function draw(){
   paddleInCanvas();
 
   //Raquete do jogador
-  if(scoreRightWrist > 0.2)
-  {
     fill("red");
     stroke("red");
-    circle(rightWristX, rightWristY, 30);
-  }
+    circle(noseX, noseY, 30);
 
 
   fill(250,0,0);
   stroke(0,0,250);
   strokeWeight(0.5);
-  paddle1Y = rightWristY; 
+  paddle1Y = noseY; 
   rect(paddle1X,paddle1Y,paddle1,paddle1Height,100);
 
   //Raquete do computador
@@ -173,10 +164,12 @@ function move(){
   if (ball.x-2.5*ball.r/2< 0){
   if (ball.y >= paddle1Y&& ball.y <= paddle1Y + paddle1Height) {
     ball.dx = -ball.dx+0.5;
+    ballTouchPaddel.play();
     playerscore++;
   }
   else{
     pcscore++;
+    missed.play();
     reset();
     navigator.vibrate(100);
   }
@@ -188,7 +181,7 @@ if(pcscore ==4){
     rect(0,0,width,height-1);
     fill("white");
     stroke("white");
-    textSize(25)
+    textSize(25);
     text("Game Over!☹☹",width/2,height/2);
     text("Recarregue a página!",width/2,height/2+30)
     noLoop();
@@ -213,11 +206,11 @@ function models(){
 
 //Esta função ajuda a evitar que a raquete saia do canvas
 function paddleInCanvas(){
-  if(mouseY+paddle1Height > height){
-    mouseY=height-paddle1Height;
+  if(noseY+paddle1Height > height){
+    noseY=height-paddle1Height;
   }
-  if(mouseY < 0){
-    mouseY =0;
+  if(noseY < 0){
+    noseY =0;
   }  
 }
 
